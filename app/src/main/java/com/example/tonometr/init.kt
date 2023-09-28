@@ -1,16 +1,14 @@
 package com.example.tonometr
 
 import android.content.Context
-import com.example.stepmotor.bt.BT
-import com.example.stepmotor.bt.bt
-import com.example.stepmotor.bt.decoder
-import com.example.stepmotor.bt.send
+import module.bluetooth.BT
+import module.bluetooth.bt
+import module.bluetooth.decoder
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.Date
 
 /**
  * Флаг того что произошла инициализация
@@ -28,13 +26,13 @@ class Initialization(context: Context) {
 
     init {
 
-        bt.init(context)
+        module.bluetooth.bt.init(context)
         //bt.getPairedDevices()
-        bt.autoConnect()
+        module.bluetooth.bt.autoConnect()
 
-        decoder.run()
+        module.bluetooth.decoder.run()
 
-        decoder.addCmd("V")
+        module.bluetooth.decoder.addCmd("V")
         {
 
             try {
@@ -73,8 +71,8 @@ class Initialization(context: Context) {
 
         //Следим за тем чтобы при дисконекте снова прошла инициализация компос
         GlobalScope.launch(Dispatchers.IO) {
-            bt.btStatus.collect {
-                if (it == BT.Status.DISCONNECT)
+            module.bluetooth.bt.btStatus.collect {
+                if (it == module.bluetooth.BT.Status.DISCONNECT)
                 {
                     initCompose = false
                 }
