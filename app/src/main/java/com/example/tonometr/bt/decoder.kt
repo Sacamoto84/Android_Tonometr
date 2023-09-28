@@ -86,7 +86,7 @@ class NetCommandDecoder(
     }
 
     /**
-     * Декодировка команд получаем целые строки без \n
+     * Декодировка команд получаем целые строки без \n и вывод в cliDecoder тела пакета
      */
     private suspend fun commandDecoder() {
 
@@ -95,12 +95,14 @@ class NetCommandDecoder(
             //val raw = "qqq¹xzassd¡¡¡¡¡²45³qw" //'¹' '²' '³' 179 '¡' 161    ¡ A1   §A7 ¿DF ¬AC
             val raw = channelRoute.receive()
 
+            if (raw.isEmpty()) continue
+
             val posStart = raw.indexOf("!")
             val posCRC = raw.indexOf(";")
             val posEnd = raw.indexOf("$")
 
             if ((posStart == -1) || (posEnd == -1) || (posCRC == -1) || (posCRC !in (posStart + 1) until posEnd)) {
-                //Timber.e("Ошибка позиции пакета S:$posStart C:$posCRC E:$posEnd")
+                Timber.e("Ошибка позиции пакета S:$posStart C:$posCRC E:$posEnd")
                 continue
             }
 
@@ -111,7 +113,7 @@ class NetCommandDecoder(
             }
 
             val crcStr = raw.substring(posCRC + 1 until posEnd)
-            var crc = 0
+            var crc: Int
             try {
                 crc = crcStr.toInt()
             } catch (e: Exception) {
@@ -148,6 +150,9 @@ class NetCommandDecoder(
     private val cmdList = mutableListOf<CliCommand>() //Список команд
 
 
+    /**
+     * Получение самой команды и его парсинг
+     */
     private suspend fun cliDecoder() {
         while (true) {
             val s = channelOutCommand.receive()
@@ -156,7 +161,9 @@ class NetCommandDecoder(
     }
 
     private fun parse(str: String) {
+
         if (str.isEmpty()) return
+
         val l = str.split(' ').toMutableList()
         val name = l.first()
         l.removeFirst()
