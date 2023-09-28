@@ -21,8 +21,8 @@ var initCompose = false
 
 class Initialization(context: Context) {
     init {
-
         btInitialization(context) //Инициализация BT
+        decodeString.run()
         isInitialized = true
     }
 }

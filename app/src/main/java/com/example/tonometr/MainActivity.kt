@@ -9,10 +9,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,17 +21,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.tonometr.ui.theme.TonometrTheme
 import module.bluetooth.BT
 import module.bluetooth.bt
 import timber.log.Timber
+import timber.log.Timber.*
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        Timber.plant(DebugTree())
+
+6
         if (!isInitialized) Initialization(applicationContext)
+
+
 
 
         setContent {
@@ -41,6 +48,16 @@ class MainActivity : ComponentActivity() {
                     Column {
 
                         Text(text = bt.btStatus.collectAsState().value.toString())
+
+                        Text(text = decodeString.pressureValue.collectAsState().value.toString())
+                        Text(text = decodeString.pressureVolt.collectAsState().value.toString())
+                        Text(text = decodeString.pressure.collectAsState().value.toString())
+
+
+                        LinearProgressIndicator(
+                            progress = decodeString.pressure.collectAsState().value / 300.0F,
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
                         ButtonBluetooth()
                     }
