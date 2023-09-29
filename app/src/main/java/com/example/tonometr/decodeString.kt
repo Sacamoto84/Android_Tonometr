@@ -6,17 +6,22 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import module.bluetooth.BT
 import module.bluetooth.chDecodedString
 import timber.log.Timber
 
 val decodeString = DecodeString(chDecodedString)
 
+
+
 class DecodeString(private val chIn: Channel<String>)
 {
-    var pressure = MutableStateFlow(0f)
+    var pressure = MutableStateFlow(0)
     var pressureVolt = MutableStateFlow(0f)
     var pressureValue = MutableStateFlow(0f)
+    var V512 = MutableStateFlow(0)
+
+    var pressureFIFO = FIFO<Int>(200)
+    var v512FIFO = FIFO<Int>(200)
 
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -25,6 +30,16 @@ class DecodeString(private val chIn: Channel<String>)
         GlobalScope.launch(Dispatchers.IO) {
               while(true) {
 
+
+                  if ((scopeW  == 0f) || (scopeH  == 0f))
+                  continue
+
+                  if (pressureFIFO.capacity() != scopeW.toInt())
+                      pressureFIFO = FIFO(scopeW.toInt())
+
+                  if (v512FIFO.capacity() != scopeW.toInt())
+                      v512FIFO = FIFO(scopeW.toInt())
+
                   val str = chIn.receive()
                   if (str.isEmpty()) continue
 
@@ -32,25 +47,18 @@ class DecodeString(private val chIn: Channel<String>)
                   val l = str.split(' ').toMutableList()
 
 
-                  val foundIndexValue = l.indexOfFirst { it.contains("v=") }
-                  val foundIndexVolt = l.indexOfFirst { it.contains("f=") }
-                  val foundIndexPressure = l.indexOfFirst { it.contains("p=") }
+                  //val foundIndexValue = l.indexOfFirst { it.contains("v=") }
+                  //val foundIndexVolt = l.indexOfFirst { it.contains("f=") }
+                  val foundIndexPressure = l.indexOfFirst { it.contains("p") }
 
-                  if (foundIndexValue != -1)
+                  val foundIndexV12 = l.indexOfFirst { it.contains("v") }
+
+                  if (foundIndexV12 != -1)
                   {
                       try {
-                          val s = l[foundIndexValue].substringAfter("v=")
-                          pressureValue.value = s.toFloat()
-                      }
-                      catch (e: Exception){
-                          Timber.e(e.localizedMessage)}
-                  }
-
-                  if (foundIndexVolt != -1)
-                  {
-                      try {
-                          val s = l[foundIndexVolt].substringAfter("f=")
-                          pressureVolt.value = s.toFloat()
+                          val s = l[foundIndexV12].substringAfter("v")
+                          V512.value = s.toInt()
+                          v512FIFO.enqueue(s.toInt())
                       }
                       catch (e: Exception){
                           Timber.e(e.localizedMessage)}
@@ -59,26 +67,13 @@ class DecodeString(private val chIn: Channel<String>)
                   if (foundIndexPressure != -1)
                   {
                       try {
-                          val s = l[foundIndexPressure].substringAfter("p=")
-                          pressure.value = s.toFloat()
+                          val s = l[foundIndexPressure].substringAfter("p")
+                          pressure.value = s.toInt()
+                          pressureFIFO.enqueue(s.toInt())
                       }
                       catch (e: Exception){
                           Timber.e(e.localizedMessage)}
                   }
-
-
-                  //        val name = l.first()
-                  //        l.removeFirst()
-                  //        val arg: List<String> = l.filter { it.isNotEmpty() }
-                  //        try {
-                  //            val command: CliCommand = cmdList.first { it.name == name }
-                  //            command.cb.invoke(arg)
-                  //        } catch (e: Exception) {
-                  //            Timber.e("CLI отсутствует команда $name")
-                  //        }
-
-
-
 
               }
         }
