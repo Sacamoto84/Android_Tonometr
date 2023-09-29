@@ -12,6 +12,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,8 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.example.tonometr.ui.theme.TonometrTheme
 import com.patrykandpatrick.vico.core.entry.FloatEntry
@@ -45,7 +50,12 @@ class MainActivity : ComponentActivity() {
 
         if (!isInitialized) Initialization(applicationContext)
 
+
+
         setContent {
+
+            KeepScreenOn()
+
             TonometrTheme { // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
@@ -54,8 +64,6 @@ class MainActivity : ComponentActivity() {
 
                         Text(text = bt.btStatus.collectAsState().value.toString())
 
-                        Text(text = decodeString.pressureValue.collectAsState().value.toString())
-                        Text(text = decodeString.pressureVolt.collectAsState().value.toString())
                         Text(text = decodeString.pressure.collectAsState().value.toString())
                         Text(text = decodeString.V512.collectAsState().value.toString())
 
@@ -64,52 +72,56 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        val path = Path()
 
-                        val lplist : MutableList<FloatEntry> = emptyList<FloatEntry>().toMutableList()
+
+
+                        val path = Path()
+                        val path2 = Path()
 
                         val a = decodeString.pressureFIFO.toList()
-                        for (i in a.indices)
-                        {
-                            lplist.add(FloatEntry( i.toFloat(), a[i].toFloat()))
 
-                            path.lineTo( i.toFloat(), a[i].toFloat())
+                        if (a.isNotEmpty()) {
+                            path.moveTo(0f, maping(a[0].toFloat(), 0f, 300f, scopeH, scopeH/2))
+
+                            for (i in 1 until a.size) {
+                                path.lineTo(
+                                    i.toFloat(),
+                                    maping(a[i].toFloat(), 0f, 300f, scopeH/2, 0f)
+                                )
+                            }
                         }
 
 
 
+
                         Canvas(
-                            modifier = Modifier.fillMaxWidth().height(500.dp).border(1.dp, Color.Gray)
+                            modifier = Modifier.fillMaxWidth().fillMaxHeight().weight(1f).border(1.dp, Color.Gray)
                         )
                         {
 
                             scopeW = size.width
                             scopeH = size.height
 
+
+                            drawRoundRect(
+                                color = Color.Blue,
+                                size = Size(size.width - 30f, size.height/2),
+                                topLeft = Offset(0f, 0f),
+                                style = Stroke(width = 1.dp.toPx()),
+//                                cornerRadius = CornerRadius(
+//                                    x = 30.dp.toPx(),
+//                                    y = 30.dp.toPx()
+//                                )
+                            )
+
                            drawPath(
                                path,
-                               color = Color.Black
+                               color = Color.Red,
+                               style = Stroke(width = 2.dp.toPx())
                            )
 
 
-
-
-
-
                         }
-
-//                        val chartEntryModel = entryModelOf(
-//                            //entriesOf(4f, 12f, 8f, 16f),
-//                            lplist
-//                            //entriesOf(12f, 16f, 4f, 12f)
-//                        )
-
-//                        Chart(
-//                            chart = lineChart(),
-//                            model = chartEntryModel,
-//                            startAxis = rememberStartAxis(),
-//                            bottomAxis = rememberBottomAxis(),
-//                        )
 
                         ButtonBluetooth()
                     }
