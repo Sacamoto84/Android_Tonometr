@@ -1,5 +1,6 @@
 package com.example.tonometr
 
+import com.example.tonometr.scope.areaWOffsetX
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -16,13 +17,12 @@ val decodeString = DecodeString(chDecodedString)
 class DecodeString(private val chIn: Channel<String>)
 {
     var pressure = MutableStateFlow(0)
-    var pressureVolt = MutableStateFlow(0f)
-    var pressureValue = MutableStateFlow(0f)
     var V512 = MutableStateFlow(0)
 
-    var pressureFIFO = FIFO<Int>(200)
-    var v512FIFO = FIFO<Int>(200)
+    var pressureFIFO = FIFO<Int>(20)
+    var v512FIFO = FIFO<Int>(20)
 
+    var update = MutableStateFlow(0)
 
     @OptIn(DelicateCoroutinesApi::class)
     fun run()
@@ -34,11 +34,11 @@ class DecodeString(private val chIn: Channel<String>)
                   if ((scopeW  == 0f) || (scopeH  == 0f))
                   continue
 
-                  if (pressureFIFO.capacity() != scopeW.toInt())
-                      pressureFIFO = FIFO(scopeW.toInt())
+                  if (pressureFIFO.capacity() != scopeW.toInt() - areaWOffsetX.toInt())
+                      pressureFIFO = FIFO(scopeW.toInt() - areaWOffsetX.toInt())
 
-                  if (v512FIFO.capacity() != scopeW.toInt())
-                      v512FIFO = FIFO(scopeW.toInt())
+                  if (v512FIFO.capacity() != scopeW.toInt()  - areaWOffsetX.toInt())
+                      v512FIFO = FIFO(scopeW.toInt() - areaWOffsetX.toInt())
 
                   val str = chIn.receive()
                   if (str.isEmpty()) continue
@@ -74,6 +74,8 @@ class DecodeString(private val chIn: Channel<String>)
                       catch (e: Exception){
                           Timber.e(e.localizedMessage)}
                   }
+
+                  update.value++
 
               }
         }

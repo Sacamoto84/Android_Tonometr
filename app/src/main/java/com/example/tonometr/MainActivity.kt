@@ -8,14 +8,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -25,15 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.unit.dp
+import com.example.tonometr.scope.Scope
 import com.example.tonometr.ui.theme.TonometrTheme
-import com.patrykandpatrick.vico.core.entry.FloatEntry
 import module.bluetooth.BT
 import module.bluetooth.bt
 import timber.log.Timber
@@ -72,56 +61,7 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxWidth()
                         )
 
-
-
-
-                        val path = Path()
-                        val path2 = Path()
-
-                        val a = decodeString.pressureFIFO.toList()
-
-                        if (a.isNotEmpty()) {
-                            path.moveTo(0f, maping(a[0].toFloat(), 0f, 300f, scopeH, scopeH/2))
-
-                            for (i in 1 until a.size) {
-                                path.lineTo(
-                                    i.toFloat(),
-                                    maping(a[i].toFloat(), 0f, 300f, scopeH/2, 0f)
-                                )
-                            }
-                        }
-
-
-
-
-                        Canvas(
-                            modifier = Modifier.fillMaxWidth().fillMaxHeight().weight(1f).border(1.dp, Color.Gray)
-                        )
-                        {
-
-                            scopeW = size.width
-                            scopeH = size.height
-
-
-                            drawRoundRect(
-                                color = Color.Blue,
-                                size = Size(size.width - 30f, size.height/2),
-                                topLeft = Offset(0f, 0f),
-                                style = Stroke(width = 1.dp.toPx()),
-//                                cornerRadius = CornerRadius(
-//                                    x = 30.dp.toPx(),
-//                                    y = 30.dp.toPx()
-//                                )
-                            )
-
-                           drawPath(
-                               path,
-                               color = Color.Red,
-                               style = Stroke(width = 2.dp.toPx())
-                           )
-
-
-                        }
+                        Scope(Modifier.weight(1f))
 
                         ButtonBluetooth()
                     }
